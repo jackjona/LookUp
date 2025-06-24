@@ -15,13 +15,22 @@ export default async function Home() {
         {flights.aircraft?.length > 0 && flights.aircraft[0] && (
           <div>
             <h2 className="text-2xl font-semibold mb-2">Flight Details</h2>
-            <p>Flight Number: {flights.aircraft[0].flight}</p>
-            <p>
-              Plane: {flights.aircraft[0].t} ({flights.aircraft[0].desc})
-            </p>
-            <p>Flight Operator: {flights.aircraft[0].ownOp}</p>
+            {flights.aircraft[0].flight && (
+              <p>Flight Number: {flights.aircraft[0].flight}</p>
+            )}
+            {flights.aircraft[0].t && (
+              <p>
+                Plane: {flights.aircraft[0].t}{" "}
+                {flights.aircraft[0].desc && `(${flights.aircraft[0].desc})`}
+              </p>
+            )}
+            {flights.aircraft[0].ownOp && (
+              <p>Flight Operator: {flights.aircraft[0].ownOp}</p>
+            )}
 
-            <FlightDetails flightNumber={flights.aircraft[0].flight} />
+            {flights.aircraft[0].flight && (
+              <FlightDetails flightNumber={flights.aircraft[0].flight} />
+            )}
           </div>
         )}
         <br />
