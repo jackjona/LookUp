@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import SkeletonLoader from "./SkeletonLoader";
 
 export default function FlightDetails({ flightNumber }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -21,15 +22,7 @@ export default function FlightDetails({ flightNumber }) {
   }, [flightNumber]);
   return (
     <div className="mx-12 my-4">
-      {isLoading && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="p-2 w-full mx-auto animate-pulse h-32 bg-gray-300 rounded-xl flex items-center justify-center"
-        >
-          <span className="sr-only">Loading flight details...</span>
-        </div>
-      )}
+      {isLoading && <SkeletonLoader customClasses="p-2 h-32 w-full" />}
 
       {!isLoading && flightInfo && flightInfo.response.flightroute ? (
         <div

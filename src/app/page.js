@@ -1,9 +1,10 @@
 import FlightDetails from "@/components/FlightDetails";
+import PlaneImage from "@/components/PlaneImage";
 import Refresh from "@/components/Refresh";
 
 export default async function Home() {
   const data = await fetch(
-    "https://opendata.adsb.fi/api/v2/lat/43.900/lon/-79.530/dist/10",
+    "https://opendata.adsb.fi/api/v2/lat/43.85/lon/-79.530/dist/5",
     { cache: "no-store" }
   );
 
@@ -15,8 +16,11 @@ export default async function Home() {
         <h1 className="text-7xl font-extrabold">LookUp</h1>
         <br />
         {/* Check if there is a flight nearby */}
-        {flights.aircraft?.length > 0 && flights.aircraft[0] && (
+        {flights.aircraft?.length > 0 && flights.aircraft[0] ? (
           <div>
+            {flights.aircraft[0].r && (
+              <PlaneImage registration={flights.aircraft[0].r} />
+            )}
             <h2 className="text-2xl font-semibold mb-2">Flight Details</h2>
             {flights.aircraft[0].flight && (
               <p>Flight Number: {flights.aircraft[0].flight}</p>
@@ -34,6 +38,12 @@ export default async function Home() {
             {flights.aircraft[0].flight && (
               <FlightDetails flightNumber={flights.aircraft[0].flight} />
             )}
+          </div>
+        ) : (
+          <div id="noPlane">
+            <h2 className="text-2xl">
+              There are currently no planes flying above you.
+            </h2>
           </div>
         )}
         <br />
