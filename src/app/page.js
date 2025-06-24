@@ -1,9 +1,12 @@
 import FlightDetails from "@/components/FlightDetails";
+import Refresh from "@/components/Refresh";
 
 export default async function Home() {
   const data = await fetch(
-    "https://opendata.adsb.fi/api/v2/lat/43.900/lon/-79.530/dist/10"
+    "https://opendata.adsb.fi/api/v2/lat/43.900/lon/-79.530/dist/10",
+    { cache: "no-store" }
   );
+
   const flights = await data.json();
 
   return (
@@ -51,6 +54,7 @@ export default async function Home() {
             ))}
           </div>
         )}
+        <Refresh />
       </main>
     </>
   );
