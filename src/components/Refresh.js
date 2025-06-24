@@ -33,13 +33,26 @@ export default function RefreshTimer() {
   };
 
   return (
-    <div
+    <button
       onClick={toggleRefresh}
-      className={`cursor-pointer fixed bottom-4 right-4 px-3 py-1 opacity-70 rounded-md text-sm transition-all duration-300 transform ${
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleRefresh();
+        }
+      }}
+      aria-pressed={enabled}
+      aria-live="polite"
+      aria-label={
+        enabled
+          ? `Auto-refresh enabled. Refreshing in ${countdown} seconds. Click to disable.`
+          : "Auto-refresh disabled. Click to enable."
+      }
+      className={`fixed bottom-4 right-4 px-3 py-1 opacity-70 rounded-md text-sm transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-offset-2 ${
         enabled ? "bg-black text-white" : "bg-gray-300 text-black"
       } hover:scale-105`}
     >
       {enabled ? `Refreshing in ${countdown}s` : "Auto-refresh OFF"}
-    </div>
+    </button>
   );
 }

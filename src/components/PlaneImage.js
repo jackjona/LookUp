@@ -17,7 +17,6 @@ export default function PlaneImage({ registration }) {
         );
         const data = await res.json();
         setImageUrl(data.Images[0]?.Image);
-        console.log(data.Images[0].Image);
       } catch (error) {
         console.error("Failed to fetch image", error);
       } finally {
@@ -31,16 +30,20 @@ export default function PlaneImage({ registration }) {
   const isLoading = fetching || !imgLoaded;
 
   return (
-    <div className="relative w-full h-auto">
+    <div
+      className="relative w-full h-auto"
+      aria-busy={isLoading}
+      aria-live="polite"
+    >
       {isLoading && <SkeletonLoader customClasses="p-2 w-90 h-60 m-4" />}
       {imageUrl && (
         <img
           src={imageUrl}
-          alt={`Image of Plane ${registration}`}
+          alt={`Photograph of airplane with the registration ${registration}`}
           onLoad={() => setImgLoaded(true)}
           className={`${isLoading ? "hidden" : "block"} mx-auto rounded-lg m-4`}
-          width="350px"
-          height="250px"
+          width="350"
+          height="250"
         />
       )}
     </div>

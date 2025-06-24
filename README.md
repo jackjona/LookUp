@@ -6,6 +6,7 @@ A simple website that identifies the plane flying above you in real time with fl
 
 - [adsb.fi](https://adsb.fi) for nearby flight info
 - [adsbdb.com](https://www.adsbdb.com/) for flight route info
+- [jetapi.dev](https://www.jetapi.dev) for plane images
 
 ---
 

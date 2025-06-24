@@ -23,16 +23,29 @@ export default async function Home() {
             )}
             <h2 className="text-2xl font-semibold mb-2">Flight Details</h2>
             {flights.aircraft[0].flight && (
-              <p>Flight Number: {flights.aircraft[0].flight}</p>
+              <p>
+                <span className="font-bold">Flight Number:</span>{" "}
+                {flights.aircraft[0].flight}
+              </p>
             )}
             {flights.aircraft[0].t && (
               <p>
-                Plane: {flights.aircraft[0].t}{" "}
+                <span className="font-bold">Plane:</span>{" "}
+                {flights.aircraft[0].t}{" "}
                 {flights.aircraft[0].desc && `(${flights.aircraft[0].desc})`}
               </p>
             )}
             {flights.aircraft[0].ownOp && (
-              <p>Flight Operator: {flights.aircraft[0].ownOp}</p>
+              <p>
+                <span className="font-bold">Flight Operator:</span>{" "}
+                {flights.aircraft[0].ownOp}
+              </p>
+            )}
+            {flights.aircraft[0].alt_baro && (
+              <p>
+                <span className="font-bold">Barometric Alt:</span>{" "}
+                {flights.aircraft[0].alt_baro} ft
+              </p>
             )}
 
             {flights.aircraft[0].flight && (
@@ -55,11 +68,30 @@ export default async function Home() {
             </h2>
             {flights.aircraft.slice(1).map((plane, index) => (
               <div key={index} className="mb-4">
-                <p>Flight Number: {plane.flight}</p>
-                <p>Flight Operator: {plane.ownOp}</p>
-                <p>
-                  Plane: {plane.t} ({plane.desc})
-                </p>
+                {plane.flight && (
+                  <p>
+                    <span className="font-bold">Flight Number:</span>{" "}
+                    {plane.flight}
+                  </p>
+                )}
+                {plane.t && (
+                  <p>
+                    <span className="font-bold">Plane:</span> {plane.t}{" "}
+                    {plane.desc && `(${plane.desc})`}
+                  </p>
+                )}
+                {plane.ownOp && (
+                  <p>
+                    <span className="font-bold">Flight Operator:</span>{" "}
+                    {plane.ownOp}
+                  </p>
+                )}
+                {plane.alt_baro && (
+                  <p>
+                    <span className="font-bold">Barometric Alt:</span>{" "}
+                    {plane.alt_baro} ft
+                  </p>
+                )}
               </div>
             ))}
           </div>
