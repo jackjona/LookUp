@@ -1,4 +1,3 @@
-import Refresh from "@/components/Refresh";
 import FlightDetails from "@/components/FlightDetails";
 
 export default async function Home() {
@@ -8,7 +7,6 @@ export default async function Home() {
         <h1 className="text-7xl font-extrabold">LookUp</h1>
         <br />
         <FlightDetails />
-        <Refresh />
       </main>
     </>
   );

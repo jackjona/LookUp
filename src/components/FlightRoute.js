@@ -63,7 +63,7 @@ export default function FlightRoute({ flightNumber }) {
             </p>
           </div>
 
-          <div aria-hidden="true">
+          <div aria-hidden="true" className="px-4">
             <Image src="/arrow.svg" alt="" width={32} height={32} priority />
           </div>
 
