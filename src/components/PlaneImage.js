@@ -20,6 +20,7 @@ export default function PlaneImage({ registration }) {
         setImageUrl(data.Images[0]?.Image);
       } catch (error) {
         setError(true);
+        console.error(error.message);
       } finally {
         setFetching(false);
       }
