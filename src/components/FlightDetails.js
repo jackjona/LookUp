@@ -41,7 +41,7 @@ export default function FlightDetails({ flightNumber }) {
       {!isLoading && route ? (
         <div
           id="flightRoute"
-          className="flex flex-row w-full p-4 border-4 rounded-2xl justify-around items-center"
+          className="flex flex-row w-full p-4 border-4 rounded-2xl justify-around items-center bg-black/10 dark:bg-white/10"
         >
           <div id="origin" aria-labelledby="originHeading">
             <h2 id="originHeading" className="font-bold text-2xl pb-1">
