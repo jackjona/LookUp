@@ -13,6 +13,7 @@ export default function FlightDetails() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [enabled, setEnabled] = useState(false);
   const [countdown, setCountdown] = useState(5);
+  const [showForm, setShowForm] = useState(false);
 
   // Load saved coordinates from localStorage
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function FlightDetails() {
       const data = await res.json();
       setFlights(data);
     } catch (error) {
-      console.error(err.message);
+      console.error(error.message);
       setError(true);
     } finally {
       setIsLoading(false);
@@ -186,59 +187,90 @@ export default function FlightDetails() {
         )}
       </div>
 
-      <form
-        id="customCoordinates"
-        onSubmit={handleSubmit}
-        className="mb-10 max-w-2xl mx-auto p-7 rounded-xl shadow-sm flex flex-col gap-5 items-center transform transition duration-300 hover:shadow-md border border-gray-100"
-      >
-        <h2 className="text-2xl font-semibold mb-3">Custom Coordinates</h2>
-
-        <div className="flex flex-col w-full">
-          <label htmlFor="lat" className="text-sm font-medium mb-1.5 text-left">
-            Latitude
-          </label>
-          <input
-            id="lat"
-            type="number"
-            step="0.0001"
-            value={lat}
-            onChange={(e) => setLat(e.target.value)}
-            placeholder="e.g., 34.0522"
-            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition duration-150 ease-in-out placeholder-gray-300"
-          />
-        </div>
-
-        <div className="flex flex-col w-full">
-          <label htmlFor="lon" className="text-sm font-medium mb-1.5 text-left">
-            Longitude
-          </label>
-          <input
-            id="lon"
-            type="number"
-            step="0.0001"
-            value={lon}
-            onChange={(e) => setLon(e.target.value)}
-            placeholder="e.g., -118.2437"
-            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition duration-150 ease-in-out placeholder-gray-300"
-          />
-        </div>
-
-        <div className="flex flex-col sm:flex-row w-full gap-3 mt-2">
-          <button
-            type="submit"
-            className="flex-grow px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150 ease-in-out"
+      <div id="customCoordinates" className="mb-10 mx-10">
+        <div
+          onClick={() => setShowForm((prev) => !prev)}
+          className="cursor-pointer flex items-center justify-between p-4 rounded-t-md shadow-sm 
+             bg-gray-50 hover:bg-gray-100 border  border-gray-200
+             dark:bg-white/20 dark:hover:bg-white/10 dark:border-gray-500"
+        >
+          <span className="text-xl font-semibold">Custom Coordinates</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-5 w-5 transform transition-transform duration-300 ${
+              showForm ? "rotate-180" : ""
+            }`}
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
-            Submit
-          </button>
-          <button
-            type="button"
-            onClick={handleUseMyLocation}
-            className="flex-grow px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150 ease-in-out"
-          >
-            Use My Location
-          </button>
+            <path
+              fillRule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 10.92l3.71-3.69a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z"
+              clipRule="evenodd"
+            />
+          </svg>
         </div>
-      </form>
+
+        {showForm && (
+          <form
+            onSubmit={handleSubmit}
+            className="mb-10 mx-auto p-7 rounded-b-xl shadow-sm flex flex-col gap-5 items-center transform transition duration-300 hover:shadow-md border border-t-0 bg-gray-50 hover:bg-gray-100 border-gray-200
+             dark:bg-white/20 dark:hover:bg-white/10 dark:border-gray-500"
+          >
+            <div className="flex flex-col w-full">
+              <label
+                htmlFor="lat"
+                className="text-sm font-medium mb-1.5 text-left"
+              >
+                Latitude
+              </label>
+              <input
+                id="lat"
+                type="number"
+                step="0.0001"
+                value={lat}
+                onChange={(e) => setLat(e.target.value)}
+                placeholder="43.85"
+                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition duration-150 ease-in-out placeholder-gray-300"
+              />
+            </div>
+
+            <div className="flex flex-col w-full">
+              <label
+                htmlFor="lon"
+                className="text-sm font-medium mb-1.5 text-left"
+              >
+                Longitude
+              </label>
+              <input
+                id="lon"
+                type="number"
+                step="0.0001"
+                value={lon}
+                onChange={(e) => setLon(e.target.value)}
+                placeholder="-79.530"
+                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition duration-150 ease-in-out placeholder-gray-300"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row w-full gap-3 mt-2">
+              <button
+                type="submit"
+                className="flex-grow px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150 ease-in-out"
+              >
+                Submit
+              </button>
+              <button
+                type="button"
+                onClick={handleUseMyLocation}
+                className="flex-grow px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150 ease-in-out"
+              >
+                Use My Location
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
 
       <button
         id="autoRefreshButton"
