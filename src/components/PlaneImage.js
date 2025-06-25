@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function PlaneImage({ registration }) {
+  const [error, setError] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -18,7 +19,7 @@ export default function PlaneImage({ registration }) {
         const data = await res.json();
         setImageUrl(data.Images[0]?.Image);
       } catch (error) {
-        console.error("Failed to fetch image", error);
+        setError(true);
       } finally {
         setFetching(false);
       }
@@ -35,13 +36,23 @@ export default function PlaneImage({ registration }) {
       aria-busy={isLoading}
       aria-live="polite"
     >
-      {isLoading && <SkeletonLoader customClasses="p-2 w-90 h-60 m-4" />}
+      {!error && isLoading && (
+        <SkeletonLoader customClasses="p-2 w-90 h-60 m-4" />
+      )}
       {imageUrl && (
         <img
           src={imageUrl}
           alt={`Photograph of airplane with the registration ${registration}`}
           onLoad={() => setImgLoaded(true)}
           className={`${isLoading ? "hidden" : "block"} mx-auto rounded-lg m-4`}
+          width="350"
+          height="250"
+        />
+      )}
+      {error && (
+        <img
+          src="/placeholder.svg"
+          className={"mx-auto rounded-lg m-4"}
           width="350"
           height="250"
         />
