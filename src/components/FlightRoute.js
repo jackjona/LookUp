@@ -22,7 +22,7 @@ export default function FlightRoute({ flightNumber }) {
         setFlightRoute(data);
       } catch (err) {
         setError(true);
-        console.error(error.message);
+        console.error("Error loading flight route");
       } finally {
         setIsLoading(false);
       }

@@ -12,6 +12,7 @@ export default function PlaneImage({ registration }) {
   useEffect(() => {
     async function fetchImage() {
       setFetching(true);
+      setError(false); // Refresh the error state
       try {
         const res = await fetch(
           `https://corsproxy.io/?url=https://www.jetapi.dev/api?reg=${registration}&photos=1&only_jp=true`
@@ -20,7 +21,7 @@ export default function PlaneImage({ registration }) {
         setImageUrl(data.Images[0]?.Image);
       } catch (error) {
         setError(true);
-        console.error(error.message);
+        console.error("Error loading plane image");
       } finally {
         setFetching(false);
       }
@@ -50,12 +51,13 @@ export default function PlaneImage({ registration }) {
           height="250"
         />
       )}
-      {error && (
+      {error && !isLoading && (
         <img
           src="/placeholder.svg"
           className={"mx-auto rounded-lg m-4"}
           width="350"
           height="250"
+          aria-hidden="true"
         />
       )}
     </div>

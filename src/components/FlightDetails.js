@@ -42,7 +42,7 @@ export default function FlightDetails() {
       const data = await res.json();
       setFlights(data);
     } catch (error) {
-      console.error(error.message);
+      console.error("Error loading flight details");
       setError(true);
     } finally {
       setIsLoading(false);
@@ -134,6 +134,12 @@ export default function FlightDetails() {
               <p>
                 <span className="font-bold">Barometric Alt:</span>{" "}
                 {flights.aircraft[0].alt_baro} ft
+              </p>
+            )}
+            {flights.aircraft[0].year && (
+              <p>
+                <span className="font-bold">Year:</span>{" "}
+                {flights.aircraft[0].year}
               </p>
             )}
             {flights.aircraft[0].flight && (
