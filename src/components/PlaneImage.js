@@ -15,7 +15,7 @@ export default function PlaneImage({ registration }) {
       setError(false); // Refresh the error state
       try {
         const res = await fetch(
-          `https://corsproxy.io/?url=https://www.jetapi.dev/api?reg=${registration}&photos=1&only_jp=true`
+          `/jetapi/api?reg=${registration}&photos=1&only_jp=true`,
         );
         const data = await res.json();
         setImageUrl(data.Images[0]?.Image);

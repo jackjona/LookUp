@@ -1,211 +1,182 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FlightRoute from "@/components/FlightRoute";
 import PlaneImage from "@/components/PlaneImage";
+import useLocation, { DEFAULT_COORDS } from "@/app/utils/useLocation";
+import useFlights from "@/app/utils/useFlights";
+
+const LOCATION_LABELS = {
+  granted: "Your GPS location",
+  geoip: "Approximate IP location",
+  custom: "Custom coordinates",
+  default: "Default location",
+};
 
 export default function FlightDetails() {
-  const [lat, setLat] = useState("43.85"); // Default latitude
-  const [lon, setLon] = useState("-79.530"); // Default longitude
-  const [flights, setFlights] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [enabled, setEnabled] = useState(false);
-  const [countdown, setCountdown] = useState(5);
+  const { flights, fetchFlights, autoRefresh, countdown, toggleAutoRefresh } =
+    useFlights();
+  const {
+    lat,
+    lon,
+    dist,
+    locationState,
+    setLat,
+    setLon,
+    setDist,
+    apply,
+    requestGPS,
+    requestGeoIP,
+    useDefault,
+  } = useLocation(fetchFlights);
+
   const [showForm, setShowForm] = useState(false);
+  const [showManualForm, setShowManualForm] = useState(false);
 
-  // Load saved coordinates from localStorage
-  useEffect(() => {
-    const savedLat = localStorage.getItem("lat");
-    const savedLon = localStorage.getItem("lon");
-    if (savedLat && savedLon) {
-      setLat(savedLat);
-      setLon(savedLon);
-    }
-  }, []);
+  const needsLocation =
+    locationState === "pending" || locationState === "denied";
 
-  // Save coordinates to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem("lat", lat);
-    localStorage.setItem("lon", lon);
-  }, [lat, lon]);
+  if (needsLocation) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-6">
+        <h2 className="text-2xl font-semibold">Where are you?</h2>
+        <p className="text-gray-500 dark:text-gray-400 max-w-sm text-sm">
+          To show planes flying above you, this app needs your location.
+        </p>
 
-  // Fetch flights
-  const fetchFlights = async () => {
-    setIsLoading(true);
-    setError(false);
-    try {
-      const url = `https://corsproxy.io/?url=https://opendata.adsb.fi/api/v2/lat/${lat}/lon/${lon}/dist/5`;
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
-      const data = await res.json();
-      setFlights(data);
-    } catch (error) {
-      console.error("Error loading flight details");
-      setError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        <div className="flex flex-col w-full max-w-xs gap-3">
+          <button
+            onClick={requestGPS}
+            className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition cursor-pointer"
+          >
+            Use My Precise Location
+          </button>
+          <button
+            onClick={requestGeoIP}
+            className="w-full px-4 py-2.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition cursor-pointer"
+          >
+            Use IP Location
+          </button>
+          <button
+            onClick={() => setShowManualForm((prev) => !prev)}
+            className="w-full px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-md hover:bg-gray-200 transition dark:bg-white/10 dark:text-gray-300"
+          >
+            Enter Coordinates Manually
+          </button>
+          <button
+            onClick={useDefault}
+            className="text-gray-400 text-xs underline hover:text-gray-600 transition cursor-pointer"
+          >
+            Use default location (GTA)
+          </button>
+        </div>
 
-  useEffect(() => {
-    fetchFlights();
-  }, [refreshTrigger]);
-
-  // Countdown for auto-refresh
-  useEffect(() => {
-    if (!enabled) return;
-    const interval = setInterval(() => {
-      setCountdown((prev) => (prev > 1 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [enabled]);
-
-  // Trigger refresh
-  useEffect(() => {
-    if (!enabled || countdown > 0) return;
-    setRefreshTrigger((prev) => prev + 1);
-    setCountdown(5); // Reset the timer
-  }, [countdown, enabled]);
-
-  const toggleRefresh = () => {
-    setEnabled((prev) => !prev);
-    setCountdown(5);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setRefreshTrigger((prev) => prev + 1);
-  };
-
-  // Use browser geolocation for coordinates
-  const handleUseMyLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setLat(latitude.toFixed(4));
-        setLon(longitude.toFixed(4));
-        setRefreshTrigger((prev) => prev + 1);
-      },
-      (err) => {
-        alert("Unable to retrieve your location.");
-        console.error(err.message);
-      }
+        {showManualForm && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              apply(lat, lon, "custom");
+            }}
+            className="w-full max-w-xs p-5 rounded-xl border border-gray-200 dark:border-gray-500 bg-gray-50 dark:bg-white/20 flex flex-col gap-4"
+          >
+            <CoordInput
+              label="Latitude"
+              value={lat}
+              onChange={setLat}
+              placeholder={DEFAULT_COORDS.lat}
+            />
+            <CoordInput
+              label="Longitude"
+              value={lon}
+              onChange={setLon}
+              placeholder={DEFAULT_COORDS.lon}
+            />
+            <button
+              type="submit"
+              className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition cursor-pointer"
+            >
+              Search
+            </button>
+          </form>
+        )}
+      </div>
     );
-  };
+  }
+
+  const [topFlight, ...otherFlights] = flights?.aircraft ?? [];
 
   return (
     <>
       <div className="pb-20">
-        {/*      {isLoading && <p>Loading flights...</p>}
-        {error && <p className="text-red-600">Error fetching flight data.</p>}
- */}
-        {flights?.aircraft?.length > 0 && (
+        {topFlight && (
           <div>
-            {flights.aircraft[0].r && (
-              <PlaneImage registration={flights.aircraft[0].r} />
-            )}
+            {topFlight.r && <PlaneImage registration={topFlight.r} />}
             <h2 className="text-2xl font-semibold mb-2">Flight Details</h2>
-            {flights.aircraft[0].flight && (
-              <p>
-                <span className="font-bold">Flight Number:</span>{" "}
-                {flights.aircraft[0].flight}
-              </p>
-            )}
-            {flights.aircraft[0].t && (
-              <p>
-                <span className="font-bold">Plane:</span>{" "}
-                {flights.aircraft[0].t}{" "}
-                {flights.aircraft[0].desc && `(${flights.aircraft[0].desc})`}
-              </p>
-            )}
-            {flights.aircraft[0].ownOp && (
-              <p>
-                <span className="font-bold">Flight Operator:</span>{" "}
-                {flights.aircraft[0].ownOp}
-              </p>
-            )}
-            {flights.aircraft[0].alt_baro && (
-              <p>
-                <span className="font-bold">Barometric Alt:</span>{" "}
-                {flights.aircraft[0].alt_baro} ft
-              </p>
-            )}
-            {flights.aircraft[0].year && (
-              <p>
-                <span className="font-bold">Year:</span>{" "}
-                {flights.aircraft[0].year}
-              </p>
-            )}
-            {flights.aircraft[0].flight && (
-              <FlightRoute flightNumber={flights.aircraft[0].flight} />
+            <FlightField label="Flight Number" value={topFlight.flight} />
+            <FlightField
+              label="Plane"
+              value={
+                topFlight.t &&
+                `${topFlight.t}${topFlight.desc ? ` (${topFlight.desc})` : ""}`
+              }
+            />
+            <FlightField label="Operator" value={topFlight.ownOp} />
+            <FlightField
+              label="Altitude"
+              value={topFlight.alt_baro && `${topFlight.alt_baro} ft`}
+            />
+            <FlightField label="Year" value={topFlight.year} />
+            {topFlight.flight && (
+              <FlightRoute flightNumber={topFlight.flight} />
             )}
           </div>
         )}
 
         {flights?.resultCount === 0 && (
-          <div id="noPlane">
-            <h2 className="text-2xl">
-              There are currently no planes above you.
-            </h2>
-          </div>
+          <h2 className="text-2xl">There are currently no planes above you.</h2>
         )}
 
-        {flights?.aircraft?.length > 1 && (
+        {otherFlights.length > 0 && (
           <div>
             <h2 className="text-2xl font-semibold mb-4">
               Other Flights Nearby
             </h2>
-            {flights.aircraft.slice(1).map((plane, index) => (
-              <div key={index} className="mb-4">
-                {plane.flight && (
-                  <p>
-                    <span className="font-bold">Flight Number:</span>{" "}
-                    {plane.flight}
-                  </p>
-                )}
-                {plane.t && (
-                  <p>
-                    <span className="font-bold">Plane:</span> {plane.t}{" "}
-                    {plane.desc && `(${plane.desc})`}
-                  </p>
-                )}
-                {plane.ownOp && (
-                  <p>
-                    <span className="font-bold">Flight Operator:</span>{" "}
-                    {plane.ownOp}
-                  </p>
-                )}
-                {plane.alt_baro && (
-                  <p>
-                    <span className="font-bold">Barometric Alt:</span>{" "}
-                    {plane.alt_baro} ft
-                  </p>
-                )}
+            {otherFlights.map((plane, i) => (
+              <div key={i} className="mb-4">
+                <FlightField label="Flight Number" value={plane.flight} />
+                <FlightField
+                  label="Plane"
+                  value={
+                    plane.t &&
+                    `${plane.t}${plane.desc ? ` (${plane.desc})` : ""}`
+                  }
+                />
+                <FlightField label="Operator" value={plane.ownOp} />
+                <FlightField
+                  label="Altitude"
+                  value={plane.alt_baro && `${plane.alt_baro} ft`}
+                />
               </div>
             ))}
           </div>
         )}
       </div>
+
       {flights && (
-        <div id="customCoordinates" className="mb-10 mx-10">
-          <div
-            onClick={() => setShowForm((prev) => !prev)}
-            className="cursor-pointer flex items-center justify-between p-4 rounded-t-md shadow-sm 
-             bg-gray-50 hover:bg-gray-100 border  border-gray-200
-             dark:bg-white/20 dark:hover:bg-white/10 dark:border-gray-500"
+        <div className="mb-10 mx-10">
+          <button
+            onClick={() => setShowManualForm((prev) => !prev)}
+            className="w-full flex items-center justify-between p-4 rounded-t-md bg-gray-50 hover:bg-gray-100 border border-gray-200 dark:bg-white/20 dark:hover:bg-white/10 dark:border-gray-500"
           >
-            <span className="text-xl font-semibold">Custom Coordinates</span>
+            <div className="flex flex-col text-left">
+              <span className="text-xl font-semibold">Custom Coordinates</span>
+              <span className="text-xs text-gray-400 mt-0.5">
+                {LOCATION_LABELS[locationState]}
+              </span>
+            </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`h-5 w-5 transform transition-transform duration-300 ${
-                showForm ? "rotate-180" : ""
-              }`}
+              className={`h-5 w-5 transition-transform duration-300 ${showForm ? "rotate-180" : ""}`}
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -215,91 +186,122 @@ export default function FlightDetails() {
                 clipRule="evenodd"
               />
             </svg>
-          </div>
+          </button>
 
           {showForm && (
             <form
-              onSubmit={handleSubmit}
-              className="mb-10 mx-auto p-7 rounded-b-xl shadow-sm flex flex-col gap-5 items-center transform transition duration-300 hover:shadow-md border border-t-0 bg-gray-50 border-gray-200
-             dark:bg-white/20 dark:border-gray-500"
+              onSubmit={(e) => {
+                e.preventDefault();
+                apply(lat, lon, "custom");
+              }}
+              className="p-7 rounded-b-xl border border-t-0 border-gray-200 bg-gray-50 dark:bg-white/20 dark:border-gray-500 flex flex-col gap-5"
             >
-              <div className="flex flex-col w-full">
-                <label
-                  htmlFor="lat"
-                  className="text-sm font-medium mb-1.5 text-left"
-                >
-                  Latitude
+              <CoordInput
+                label="Latitude"
+                value={lat}
+                onChange={setLat}
+                placeholder={DEFAULT_COORDS.lat}
+              />
+              <CoordInput
+                label="Longitude"
+                value={lon}
+                onChange={setLon}
+                placeholder={DEFAULT_COORDS.lon}
+              />
+
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1.5">
+                  Search Radius (nautical miles)
                 </label>
-                <input
-                  id="lat"
-                  type="number"
-                  step="0.0001"
-                  value={lat}
-                  onChange={(e) => setLat(e.target.value)}
-                  placeholder="43.85"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition duration-150 ease-in-out placeholder-gray-300"
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="1"
+                    max="250"
+                    value={dist}
+                    onChange={(e) => setDist(e.target.value)}
+                    className="flex-grow accent-blue-600"
+                  />
+                  <span className="text-sm font-medium w-14 text-right tabular-nums">
+                    {dist} nm
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                  {["1", "50", "100", "250"].map((n) => (
+                    <span key={n}>{n}</span>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex flex-col w-full">
-                <label
-                  htmlFor="lon"
-                  className="text-sm font-medium mb-1.5 text-left"
-                >
-                  Longitude
-                </label>
-                <input
-                  id="lon"
-                  type="number"
-                  step="0.0001"
-                  value={lon}
-                  onChange={(e) => setLon(e.target.value)}
-                  placeholder="-79.530"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition duration-150 ease-in-out placeholder-gray-300"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row w-full gap-3 mt-2">
+              <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="flex-grow px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150 ease-in-out"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition cursor-pointer"
                 >
                   Submit
                 </button>
                 <button
                   type="button"
-                  onClick={handleUseMyLocation}
-                  className="flex-grow px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150 ease-in-out"
+                  onClick={requestGPS}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition cursor-pointer"
                 >
                   Use My Location
                 </button>
+              </div>
+
+              <div className="flex gap-2 border-t border-gray-200 dark:border-gray-600 pt-4">
+                {[
+                  ["Request GPS", requestGPS],
+                  ["Use IP", requestGeoIP],
+                  ["Reset", useDefault],
+                ].map(([label, handler]) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={handler}
+                    className="flex-1 px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition dark:bg-white/10 dark:text-gray-300"
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </form>
           )}
         </div>
       )}
+
       <button
-        id="autoRefreshButton"
-        onClick={toggleRefresh}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            toggleRefresh();
-          }
-        }}
-        aria-pressed={enabled}
-        aria-live="polite"
-        aria-label={
-          enabled
-            ? `Auto-refresh enabled. Refreshing in ${countdown} seconds. Click to disable.`
-            : "Auto-refresh disabled. Click to enable."
-        }
-        className={`fixed bottom-4 right-4 px-3 py-1 opacity-70 rounded-md text-sm transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-          enabled ? "bg-black text-white" : "bg-gray-300 text-black"
-        } hover:scale-105`}
+        onClick={toggleAutoRefresh}
+        aria-pressed={autoRefresh}
+        className={`fixed bottom-4 right-4 px-3 py-1 opacity-70 rounded-md text-sm transition hover:scale-105 ${autoRefresh ? "bg-black text-white" : "bg-gray-300 text-black"}`}
       >
-        {enabled ? `Refreshing in ${countdown}s` : "Turn On Auto-Refresh"}
+        {autoRefresh ? `Refreshing in ${countdown}s` : "Turn On Auto-Refresh"}
       </button>
     </>
+  );
+}
+
+function FlightField({ label, value }) {
+  if (!value) return null;
+  return (
+    <p>
+      <span className="font-bold">{label}:</span> {value}
+    </p>
+  );
+}
+
+function CoordInput({ label, value, onChange, placeholder }) {
+  return (
+    <div className="flex flex-col">
+      <label className="text-sm font-medium mb-1.5">{label}</label>
+      <input
+        type="number"
+        step="0.0001"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition placeholder-gray-300"
+      />
+    </div>
   );
 }
