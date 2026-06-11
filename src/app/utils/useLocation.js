@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const DEFAULT_COORDS = { lat: "43.85", lon: "-79.530", dist: "10" }; // Set some default/placeholder values
+const DEFAULT_COORDS = { lat: "43.845", lon: "-79.560", dist: "10" }; // Set some default/placeholder values
 
 function loadPrefs() {
   if (typeof window === "undefined") return null;
