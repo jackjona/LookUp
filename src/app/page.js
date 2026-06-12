@@ -4,7 +4,7 @@ export default async function Home() {
   return (
     <>
       <main className="min-h-screen w-full flex flex-col justify-center items-center text-center">
-        <div className="rounded-full dark:bg-white p-2">
+        <div className="rounded-full dark:bg-white p-3 m-1">
           <img
             src="/android-chrome-192x192.png"
             alt=""

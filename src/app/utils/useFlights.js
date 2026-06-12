@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 
 export default function useFlights() {
-  const intervalDuration = 5; // 5 second refresh duration
+  const intervalDuration = 10; // 10 second refresh duration
 
   const [flights, setFlights] = useState(null);
-  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true); // Auto-refresh is on by default
   const [countdown, setCountdown] = useState(intervalDuration);
   const coordsRef = useRef(null);
 
