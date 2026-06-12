@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import SkeletonLoader from "@/components/SkeletonLoader";
 
 export default function PlaneImage({ registration }) {
   const [error, setError] = useState(false);
@@ -39,16 +38,21 @@ export default function PlaneImage({ registration }) {
       aria-live="polite"
     >
       {!error && isLoading && (
-        <SkeletonLoader customClasses="p-2 w-90 h-60 m-4" />
+        <div
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          className={`p-2 h-full w-full mx-auto animate-pulse bg-gray-600 rounded-xl flex items-center justify-center`}
+        ></div>
       )}
       {imageUrl && (
         <img
           src={imageUrl}
           alt={`Photograph of airplane with the registration ${registration}`}
           onLoad={() => setImgLoaded(true)}
-          className={`${isLoading ? "hidden" : "block"} mx-auto rounded-lg m-4`}
-          width="350"
-          height="250"
+          className={`${isLoading ? "hidden" : "block"} mx-auto rounded-lg`}
+          /*        width="350"
+          height="250" */
         />
       )}
       {error && !isLoading && (

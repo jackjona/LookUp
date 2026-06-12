@@ -4,15 +4,17 @@ export default async function Home() {
   return (
     <>
       <main className="min-h-screen w-full flex flex-col justify-center items-center text-center">
-        <img
-          src="/android-chrome-192x192.png"
-          alt=""
-          className="rounded-md"
-          loading="eager"
-          height="96"
-          width="96"
-        />
-        <h1 className="text-7xl font-extrabold">LookUp</h1>
+        <div className="rounded-full dark:bg-white p-2">
+          <img
+            src="/android-chrome-192x192.png"
+            alt=""
+            className="rounded-md"
+            loading="eager"
+            height="96"
+            width="96"
+          />
+        </div>
+        <h1 className="text-5xl font-extrabold">LookUp</h1>
         <br />
         <FlightDetails />
       </main>

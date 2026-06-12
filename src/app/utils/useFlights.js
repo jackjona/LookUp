@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 
 export default function useFlights() {
+  const intervalDuration = 5; // 5 second refresh duration
+
   const [flights, setFlights] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const [countdown, setCountdown] = useState(10); // 10 second refresh duration
+  const [countdown, setCountdown] = useState(intervalDuration);
   const coordsRef = useRef(null);
 
   async function fetchFlights(lat, lon, dist) {
@@ -29,7 +31,7 @@ export default function useFlights() {
           const { lat, lon, dist } = coordsRef.current;
           fetchFlights(lat, lon, dist);
         }
-        return 10;
+        return intervalDuration;
       });
     }, 1000);
     return () => clearInterval(id);
@@ -42,7 +44,7 @@ export default function useFlights() {
     countdown,
     toggleAutoRefresh: () => {
       setAutoRefresh((p) => !p);
-      setCountdown(10);
+      setCountdown(intervalDuration);
     },
   };
 }

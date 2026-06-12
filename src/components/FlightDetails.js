@@ -1,17 +1,213 @@
 "use client";
 
 import { useState } from "react";
-import FlightRoute from "@/components/FlightRoute";
-import PlaneImage from "@/components/PlaneImage";
+import FlightList from "@/components/FlightList";
 import useLocation, { DEFAULT_COORDS } from "@/app/utils/useLocation";
 import useFlights from "@/app/utils/useFlights";
 
 const LOCATION_LABELS = {
-  granted: "Your GPS location",
-  geoip: "Approximate IP location",
-  custom: "Custom coordinates",
-  default: "Default location",
+  granted: "GPS",
+  geoip: "IP location",
+  custom: "Custom",
+  default: "Default (GTA)",
 };
+
+function IconPlane({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 17.5L19 12L5 6.5V10.5L15 12L5 13.5V17.5Z" />
+    </svg>
+  );
+}
+
+function IconTarget({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+    </svg>
+  );
+}
+
+function IconGlobe({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  );
+}
+
+function IconRefresh({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+  );
+}
+
+export function IconChevron({ open }) {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+export function CoordInput({ label, value, onChange, placeholder }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="font-mono text-[10px] font-semibold tracking-widest uppercase text-indigo-500/70 dark:text-indigo-400/60">
+        {label}
+      </label>
+      <input
+        type="number"
+        step="0.0001"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="
+          w-full font-mono text-[13px] px-3 py-2 rounded-lg outline-none
+          bg-slate-100 dark:bg-slate-800/80
+          border border-slate-200 dark:border-slate-700/60
+          text-slate-900 dark:text-slate-100
+          placeholder:text-slate-400 dark:placeholder:text-slate-600
+          focus:border-indigo-400/60 dark:focus:border-indigo-500/50
+          focus:ring-1 focus:ring-indigo-400/20 dark:focus:ring-indigo-500/10
+          transition-all duration-150
+          [appearance:textfield]
+          [&::-webkit-outer-spin-button]:appearance-none
+          [&::-webkit-inner-spin-button]:appearance-none
+        "
+      />
+    </div>
+  );
+}
+
+function Panel({ children, className = "" }) {
+  return (
+    <div
+      className={`
+        relative overflow-hidden rounded-2xl
+        border border-slate-200 dark:border-slate-700/50
+        bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900 dark:to-slate-800
+        shadow-sm dark:shadow-none
+        transition-all duration-300
+        ${className}
+      `}
+    >
+      {/* dark mode grid effect*/}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 dark:opacity-[0.025]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#38bdf8 1px, transparent 1px), linear-gradient(90deg, #38bdf8 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+        aria-hidden="true"
+      />
+      {children}
+    </div>
+  );
+}
+
+function BtnPrimary({ onClick, children, className = "" }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        flex items-center justify-center gap-2
+        py-2.5 px-4 rounded-xl
+        bg-slate-900 dark:bg-indigo-500/90
+        text-white dark:text-white
+        text-[13px] font-medium tracking-wide
+        hover:opacity-85 active:scale-[.98]
+        transition-all duration-150
+        ${className}
+      `}
+    >
+      {children}
+    </button>
+  );
+}
+
+function BtnSecondary({ onClick, children, className = "" }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        flex items-center justify-center gap-2
+        py-2.5 px-4 rounded-xl
+        bg-slate-100 dark:bg-slate-800/80
+        border border-slate-200 dark:border-slate-700/60
+        text-slate-700 dark:text-slate-300
+        text-[13px] font-medium
+        hover:bg-slate-200 dark:hover:bg-slate-700/70
+        active:scale-[.98] transition-all duration-150
+        ${className}
+      `}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function FlightDetails() {
   const { flights, fetchFlights, autoRefresh, countdown, toggleAutoRefresh } =
@@ -30,278 +226,284 @@ export default function FlightDetails() {
     useDefault,
   } = useLocation(fetchFlights);
 
-  const [showForm, setShowForm] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const needsLocation =
     locationState === "pending" || locationState === "denied";
 
   if (needsLocation) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-6">
-        <h2 className="text-2xl font-semibold">Where are you?</h2>
-        <p className="text-gray-500 dark:text-gray-400 max-w-sm text-sm">
-          To show planes flying above you, this app needs your location.
-        </p>
+      <div className="flex items-center justify-center min-h-full p-12 border-3 rounded-2xl border-slate-200 dark:border-slate-800">
+        <div className="w-full max-w-xs flex flex-col items-center text-center">
+          <div
+            className="
+            w-12 h-12 rounded-full mb-5 flex items-center justify-center
+            border border-slate-200 dark:border-slate-700/60
+            bg-white dark:bg-slate-900
+            text-indigo-500 dark:text-indigo-400
+            shadow-sm dark:shadow-none
+          "
+          >
+            <IconPlane />
+          </div>
 
-        <div className="flex flex-col w-full max-w-xs gap-3">
-          <button
-            onClick={requestGPS}
-            className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition cursor-pointer"
+          <h1
+            className="
+            text-[18px] font-semibold tracking-tight
+            text-slate-900 dark:text-slate-100
+            mb-2
+          "
           >
-            Use My Precise Location
-          </button>
-          <button
-            onClick={requestGeoIP}
-            className="w-full px-4 py-2.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition cursor-pointer"
+            What's overhead?
+          </h1>
+          <p
+            className="
+            font-mono text-[11px] tracking-widest uppercase
+            text-indigo-500/70 dark:text-indigo-400/60
+            mb-1
+          "
           >
-            Use IP Location
-          </button>
-          <button
-            onClick={() => setShowManualForm((prev) => !prev)}
-            className="w-full px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-md hover:bg-gray-200 transition dark:bg-white/10 dark:text-gray-300"
+            Real-time aircraft tracker
+          </p>
+          <p
+            className="
+            text-[13px] text-slate-500 dark:text-slate-400
+            leading-relaxed mb-8 mt-3
+          "
           >
-            Enter Coordinates Manually
+            Share your location to see aircraft flying above you right now.
+          </p>
+
+          {/* CTA stack */}
+          <div className="w-full flex flex-col gap-2.5 mb-6">
+            <BtnPrimary onClick={requestGPS} className="w-full">
+              <IconTarget />
+              Use precise location
+            </BtnPrimary>
+            <BtnSecondary onClick={requestGeoIP} className="w-full">
+              <IconGlobe />
+              Use IP location
+            </BtnSecondary>
+          </div>
+
+          {/* divider */}
+          <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-5" />
+
+          {/* manual coords toggle */}
+          <button
+            onClick={() => setShowManualForm((p) => !p)}
+            aria-expanded={showManualForm}
+            className="
+              flex items-center gap-1.5
+              font-mono text-[11px] tracking-widest uppercase
+              text-slate-400 dark:text-slate-500
+              hover:text-indigo-500 dark:hover:text-indigo-400
+              transition-colors mb-4
+            "
+          >
+            Enter coordinates
+            <IconChevron open={showManualForm} />
           </button>
+
+          {showManualForm && (
+            <div
+              className="w-full flex flex-col gap-3 mb-4"
+              style={{ animation: "fadeSlideIn .2s ease both" }}
+            >
+              <div className="grid grid-cols-2 gap-2">
+                <CoordInput
+                  label="Latitude"
+                  value={lat}
+                  onChange={setLat}
+                  placeholder={DEFAULT_COORDS.lat}
+                />
+                <CoordInput
+                  label="Longitude"
+                  value={lon}
+                  onChange={setLon}
+                  placeholder={DEFAULT_COORDS.lon}
+                />
+              </div>
+              <BtnSecondary
+                onClick={() => apply(lat, lon, "custom")}
+                className="w-full"
+              >
+                Search this location
+              </BtnSecondary>
+            </div>
+          )}
+
           <button
             onClick={useDefault}
-            className="text-gray-400 text-xs underline hover:text-gray-600 transition cursor-pointer"
+            className="
+              font-mono text-[10px] tracking-widest uppercase
+              text-slate-400 dark:text-slate-600
+              hover:text-slate-500 dark:hover:text-slate-400
+              transition-colors mt-1
+            "
           >
-            Use default location (GTA)
+            Use default (GTA)
           </button>
         </div>
 
-        {showManualForm && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              apply(lat, lon, "custom");
-            }}
-            className="w-full max-w-xs p-5 rounded-xl border border-gray-200 dark:border-gray-500 bg-gray-50 dark:bg-white/20 flex flex-col gap-4"
-          >
-            <CoordInput
-              label="Latitude"
-              value={lat}
-              onChange={setLat}
-              placeholder={DEFAULT_COORDS.lat}
-            />
-            <CoordInput
-              label="Longitude"
-              value={lon}
-              onChange={setLon}
-              placeholder={DEFAULT_COORDS.lon}
-            />
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition cursor-pointer"
-            >
-              Search
-            </button>
-          </form>
-        )}
+        {/* Subtle animation */}
+        <style>{`
+          @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
       </div>
     );
   }
 
-  const [topFlight, ...otherFlights] = flights?.aircraft ?? [];
-
   return (
-    <>
-      <div className="pb-20">
-        {topFlight && (
-          <div>
-            {topFlight.r && <PlaneImage registration={topFlight.r} />}
-            <h2 className="text-2xl font-semibold mb-2">Flight Details</h2>
-            <FlightField label="Flight Number" value={topFlight.flight} />
-            <FlightField
-              label="Plane"
-              value={
-                topFlight.t &&
-                `${topFlight.t}${topFlight.desc ? ` (${topFlight.desc})` : ""}`
-              }
-            />
-            <FlightField label="Operator" value={topFlight.ownOp} />
-            <FlightField
-              label="Altitude"
-              value={topFlight.alt_baro && `${topFlight.alt_baro} ft`}
-            />
-            <FlightField label="Year" value={topFlight.year} />
-            {topFlight.flight && (
-              <FlightRoute flightNumber={topFlight.flight} />
-            )}
-          </div>
-        )}
-
-        {flights?.resultCount === 0 && (
-          <h2 className="text-2xl">There are currently no planes above you.</h2>
-        )}
-
-        {otherFlights.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">
-              Other Flights Nearby
-            </h2>
-            {otherFlights.map((plane, i) => (
-              <div key={i} className="mb-4">
-                <FlightField label="Flight Number" value={plane.flight} />
-                <FlightField
-                  label="Plane"
-                  value={
-                    plane.t &&
-                    `${plane.t}${plane.desc ? ` (${plane.desc})` : ""}`
-                  }
-                />
-                <FlightField label="Operator" value={plane.ownOp} />
-                <FlightField
-                  label="Altitude"
-                  value={plane.alt_baro && `${plane.alt_baro} ft`}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="max-w-2xl mx-auto px-4 pt-6 pb-28min-h-dvh">
+      <FlightList flights={flights} />
 
       {flights && (
-        <div className="mb-10 mx-10">
+        <Panel className="mt-6">
           <button
-            onClick={() => setShowManualForm((prev) => !prev)}
-            className="w-full flex items-center justify-between p-4 rounded-t-md bg-gray-50 hover:bg-gray-100 border border-gray-200 dark:bg-white/20 dark:hover:bg-white/10 dark:border-gray-500"
+            onClick={() => setShowSettings((p) => !p)}
+            aria-expanded={showSettings}
+            className="
+              relative z-10 w-full flex items-center justify-between
+              px-5 py-3.5 text-left
+              hover:bg-slate-50 dark:hover:bg-slate-800/30
+              transition-colors duration-150
+            "
           >
-            <div className="flex flex-col text-left">
-              <span className="text-xl font-semibold">Custom Coordinates</span>
-              <span className="text-xs text-gray-400 mt-0.5">
+            <div className="flex items-center gap-3">
+              <IconTarget className="text-indigo-500 dark:text-indigo-400" />
+              <span className="text-[13px] font-medium text-slate-800 dark:text-slate-200">
+                Location
+              </span>
+              {/* badge */}
+              <span
+                className="
+                font-mono text-[10px] font-semibold tracking-widest uppercase
+                text-indigo-500 dark:text-indigo-400
+                bg-indigo-50 dark:bg-indigo-400/10
+                border border-indigo-200/60 dark:border-indigo-400/20
+                px-2 py-0.5 rounded-full
+              "
+              >
                 {LOCATION_LABELS[locationState]}
               </span>
             </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-5 w-5 transition-transform duration-300 ${showForm ? "rotate-180" : ""}`}
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.23 7.21a.75.75 0 011.06.02L10 10.92l3.71-3.69a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <IconChevron open={showSettings} />
           </button>
 
-          {showForm && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                apply(lat, lon, "custom");
-              }}
-              className="p-7 rounded-b-xl border border-t-0 border-gray-200 bg-gray-50 dark:bg-white/20 dark:border-gray-500 flex flex-col gap-5"
+          {showSettings && (
+            <div
+              className="relative z-10 border-t border-slate-100 dark:border-slate-800/60 px-5 py-5 flex flex-col gap-5"
+              style={{ animation: "fadeSlideIn .2s ease both" }}
             >
-              <CoordInput
-                label="Latitude"
-                value={lat}
-                onChange={setLat}
-                placeholder={DEFAULT_COORDS.lat}
-              />
-              <CoordInput
-                label="Longitude"
-                value={lon}
-                onChange={setLon}
-                placeholder={DEFAULT_COORDS.lon}
-              />
-
-              <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1.5">
-                  Search Radius (nautical miles)
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="1"
-                    max="250"
-                    value={dist}
-                    onChange={(e) => setDist(e.target.value)}
-                    className="flex-grow accent-blue-600"
-                  />
-                  <span className="text-sm font-medium w-14 text-right tabular-nums">
+              <div className="grid grid-cols-2 gap-3">
+                <CoordInput
+                  label="Latitude"
+                  value={lat}
+                  onChange={setLat}
+                  placeholder={DEFAULT_COORDS.lat}
+                />
+                <CoordInput
+                  label="Longitude"
+                  value={lon}
+                  onChange={setLon}
+                  placeholder={DEFAULT_COORDS.lon}
+                />
+              </div>
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-mono text-[10px] font-semibold tracking-widest uppercase text-indigo-500/70 dark:text-indigo-400/60">
+                    Search radius
+                  </label>
+                  <span className="font-mono text-[13px] font-bold text-slate-800 dark:text-slate-200 tabular-nums">
                     {dist} nm
                   </span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  {["1", "50", "100", "250"].map((n) => (
+                <input
+                  type="range"
+                  min="1"
+                  max="250"
+                  step="1"
+                  value={dist}
+                  onChange={(e) => setDist(e.target.value)}
+                  className="
+                    w-full h-1 rounded-full appearance-none cursor-pointer
+                    bg-slate-200 dark:bg-slate-700
+                    accent-indigo-500 dark:accent-indigo-400
+                  "
+                />
+                <div className="flex justify-between font-mono text-[10px] text-slate-400 dark:text-slate-600 tracking-wide">
+                  {["1 nm", "50", "100", "250 nm"].map((n) => (
                     <span key={n}>{n}</span>
                   ))}
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition cursor-pointer"
+              <div className="grid grid-cols-4 gap-2">
+                <BtnPrimary
+                  onClick={() => apply(lat, lon, "custom")}
+                  className="py-2 text-[12px] rounded-lg"
                 >
-                  Submit
-                </button>
-                <button
-                  type="button"
-                  onClick={requestGPS}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition cursor-pointer"
-                >
-                  Use My Location
-                </button>
-              </div>
-
-              <div className="flex gap-2 border-t border-gray-200 dark:border-gray-600 pt-4">
+                  Apply
+                </BtnPrimary>
                 {[
-                  ["Request GPS", requestGPS],
-                  ["Use IP", requestGeoIP],
+                  ["GPS", requestGPS],
+                  ["IP", requestGeoIP],
                   ["Reset", useDefault],
                 ].map(([label, handler]) => (
                   <button
                     key={label}
-                    type="button"
                     onClick={handler}
-                    className="flex-1 px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition dark:bg-white/10 dark:text-gray-300"
+                    className="
+                      py-2 font-mono text-[11px] font-semibold tracking-widest uppercase rounded-lg
+                      bg-slate-100 dark:bg-slate-800/80
+                      border border-slate-200 dark:border-slate-700/60
+                      text-slate-500 dark:text-slate-400
+                      hover:bg-slate-200 dark:hover:bg-slate-700/70
+                      active:scale-[.97] transition-all duration-150
+                    "
                   >
                     {label}
                   </button>
                 ))}
               </div>
-            </form>
+            </div>
           )}
-        </div>
+
+          <style>{`
+            @keyframes fadeSlideIn {
+              from { opacity: 0; transform: translateY(6px); }
+              to   { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
+        </Panel>
       )}
 
+      {/* Auto-refresh button */}
       <button
         onClick={toggleAutoRefresh}
         aria-pressed={autoRefresh}
-        className={`fixed bottom-4 right-4 px-3 py-1 opacity-70 rounded-md text-sm transition hover:scale-105 ${autoRefresh ? "bg-black text-white" : "bg-gray-300 text-black"}`}
+        className={`
+          fixed bottom-5 right-5
+          flex items-center gap-2 px-4 py-2.5
+          rounded-full font-mono text-[11px] font-semibold tracking-widest uppercase
+          border shadow-sm transition-all duration-200 active:scale-95
+          ${
+            autoRefresh
+              ? "bg-slate-900 dark:bg-indigo-500 text-white border-transparent shadow-indigo-500/20 dark:shadow-indigo-400/20"
+              : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600"
+          }
+        `}
       >
-        {autoRefresh ? `Refreshing in ${countdown}s` : "Turn On Auto-Refresh"}
+        <IconRefresh
+          className={autoRefresh ? "animate-spin [animation-duration:2s]" : ""}
+        />
+        {autoRefresh ? `${countdown}s` : "Auto-refresh"}
       </button>
-    </>
-  );
-}
-
-function FlightField({ label, value }) {
-  if (!value) return null;
-  return (
-    <p>
-      <span className="font-bold">{label}:</span> {value}
-    </p>
-  );
-}
-
-function CoordInput({ label, value, onChange, placeholder }) {
-  return (
-    <div className="flex flex-col">
-      <label className="text-sm font-medium mb-1.5">{label}</label>
-      <input
-        type="number"
-        step="0.0001"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition placeholder-gray-300"
-      />
     </div>
   );
 }

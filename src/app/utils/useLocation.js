@@ -1,33 +1,29 @@
 import { useState, useEffect } from "react";
 
-const DEFAULT_COORDS = { lat: "43.845", lon: "-79.560", dist: "10" }; // Set some default/placeholder values
-
-function loadPrefs() {
-  if (typeof window === "undefined") return null;
-  const lat = localStorage.getItem("lat");
-  const lon = localStorage.getItem("lon");
-  const locationState = localStorage.getItem("locationState");
-  if (!lat || !lon || !locationState || locationState === "pending")
-    return null;
-  return {
-    lat,
-    lon,
-    dist: localStorage.getItem("dist") ?? DEFAULT_COORDS.dist,
-    locationState,
-  };
-}
-
-export { DEFAULT_COORDS };
+export const DEFAULT_COORDS = { lat: "43.865", lon: "-79.553", dist: "5" };
 
 export default function useLocation(onReady) {
-  const saved = loadPrefs();
+  const [lat, setLat] = useState(DEFAULT_COORDS.lat);
+  const [lon, setLon] = useState(DEFAULT_COORDS.lon);
+  const [dist, setDist] = useState(DEFAULT_COORDS.dist);
+  const [locationState, setLocationState] = useState("pending");
 
-  const [lat, setLat] = useState(saved?.lat ?? DEFAULT_COORDS.lat);
-  const [lon, setLon] = useState(saved?.lon ?? DEFAULT_COORDS.lon);
-  const [dist, setDist] = useState(saved?.dist ?? DEFAULT_COORDS.dist);
-  const [locationState, setLocationState] = useState(
-    saved?.locationState ?? "pending",
-  );
+  useEffect(() => {
+    const lat = localStorage.getItem("lat");
+    const lon = localStorage.getItem("lon");
+    const dist = localStorage.getItem("dist");
+    const locationState = localStorage.getItem("locationState");
+
+    if (lat && lon && locationState && locationState !== "pending") {
+      setLat(lat);
+      setLon(lon);
+      setDist(dist ?? DEFAULT_COORDS.dist);
+      setLocationState(locationState);
+      onReady(lat, lon, dist ?? DEFAULT_COORDS.dist);
+    } else {
+      requestGPS();
+    }
+  }, []);
 
   function apply(newLat, newLon, newState) {
     setLat(newLat);
@@ -62,11 +58,6 @@ export default function useLocation(onReady) {
       setLocationState("denied");
     }
   }
-
-  useEffect(() => {
-    if (saved) onReady(saved.lat, saved.lon, saved.dist);
-    else requestGPS();
-  }, []);
 
   return {
     lat,
