@@ -359,7 +359,7 @@ export default function FlightDetails() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-6 pb-28min-h-dvh">
+    <div className="max-w-2xl mx-auto px-4 pt-6 pb-28 w-full min-h-dvh">
       <FlightList flights={flights} />
 
       {flights && (
